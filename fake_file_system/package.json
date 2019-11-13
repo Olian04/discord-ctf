@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gits-15.sys.kth.se:oliverli/discord-ctf.git"
+  },
+  "author": "Oliver Linnarsson",
+  "dependencies": {
+    "@types/node": "^12.12.7",
+    "@types/typescript": "^2.0.0",
+    "discord.js": "^11.5.1",
+    "ts-node": "^8.5.0",
+    "typescript": "^3.7.2",
+    "vm2": "^3.8.4"
+  }
+}
