@@ -28,9 +28,14 @@ client.on('ready', () => {
             error: (...args: any[]) => out.push(args.map(String).join('')),
             debug: (...args: any[]) => out.push(args.map(String).join('')),
           },
-          fs: Object.getOwnPropertyNames(fs)
-            .filter((k) => k.endsWith('Sync'))
-            .reduce((res, k) => ({...res, [k]: fs[k]}), {}),
+          fs: {
+            readSync: fs.readSync.bind(fs),
+            readFileSync: fs.readFileSync.bind(fs),
+            readdirSync: fs.readdirSync.bind(fs),
+            statSync: fs.statSync.bind(fs),
+            fstatSync: fs.fstatSync.bind(fs),
+            lstatSync: fs.lstatSync.bind(fs),
+          },
         },
       });
       const returnValue = vm.run(message.content);

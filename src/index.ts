@@ -22,52 +22,56 @@ const secrets = require(path.resolve(__dirname, '..', 'secrets.json'));
 
 const client = new Client();
 
-client.on('ready', () => {
-  client.on('message', (message: Message) => {
-    if (message.channel.type.toLowerCase() !== 'dm') {
-      return;
-    }
-    if (message.author.bot) {
-      return;
-    }
+const handleMessage = (message: Message) => {
+  if (message.channel.type.toLowerCase() !== 'dm') {
+    return;
+  }
+  if (message.author.bot) {
+    return;
+  }
 
-    try {
-      const out = [];
-      const vm = new VM({
-        eval: false,
-        wasm: false,
-        timeout: 100,
-        sandbox: {
-          console: {
-            log: (...args: any[]) => out.push(args.map(String).join('')),
-            info: (...args: any[]) => out.push(args.map(String).join('')),
-            warn: (...args: any[]) => out.push(args.map(String).join('')),
-            error: (...args: any[]) => out.push(args.map(String).join('')),
-            debug: (...args: any[]) => out.push(args.map(String).join('')),
-          },
-          fs: Object.getOwnPropertyNames(fs)
-            .filter((k) => k.endsWith('Sync'))
-            .reduce((res, k) => ({...res, [k]: mfs[k].bind(mfs)}), {}),
+  try {
+    const out = [];
+    const vm = new VM({
+      eval: false,
+      wasm: false,
+      timeout: 100,
+      sandbox: {
+        console: {
+          log: (...args: any[]) => out.push(args.map(String).join('')),
+          info: (...args: any[]) => out.push(args.map(String).join('')),
+          warn: (...args: any[]) => out.push(args.map(String).join('')),
+          error: (...args: any[]) => out.push(args.map(String).join('')),
+          debug: (...args: any[]) => out.push(args.map(String).join('')),
         },
-      });
-      console.log('In', message.content);
-      const returnValue = vm.run(message.content);
-      out.push(returnValue);
-      const outStr = out.join('\n');
-      if (outStr.length > 0) {
-        message.channel.send(outStr);
-        console.log('Out', outStr);
-      }
-    } catch (err) {
-      if (err.message && err.message.length > 0) {
-        message.channel.send(err.message);
-        console.log('Err', err);
-      } else if (err) {
-        message.channel.send(err);
-        console.log('err', err);
-      }
+        fs: {
+          readSync: mfs.readSync.bind(mfs),
+          readFileSync: mfs.readFileSync.bind(mfs),
+          readdirSync: mfs.readdirSync.bind(mfs),
+          statSync: mfs.statSync.bind(mfs),
+          fstatSync: mfs.fstatSync.bind(mfs),
+          lstatSync: mfs.lstatSync.bind(mfs),
+        },
+      },
+    });
+    console.log('In:', message.content);
+    const returnValue = vm.run(message.content);
+    out.push(returnValue);
+    const outStr = out.join('\n');
+    if (outStr.length > 0) {
+      message.channel.send(outStr);
+      console.log('Out:', outStr);
     }
-  });
+  } catch (err) {
+    const msg = String(err) || 'error message cannot be empty';
+    message.channel.send(msg);
+    console.log('Err:', msg);
+  }
+};
+
+client.on('ready', () => {
+  client.on('message', (message: Message) => handleMessage(message));
+  client.on('messageUpdate', (oldMessage, newMessage: Message) => handleMessage(newMessage));
 });
 
 client.login(secrets.discord_token)
