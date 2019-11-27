@@ -63,4 +63,4 @@ client.login(process.env.discord_token)
     throw err;
   });
 
-const flag = 'Things are not always what they seem';
+const flag = 'phaedrus'; // "Things are not always what they seem" - Plato
