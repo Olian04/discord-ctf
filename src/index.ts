@@ -30,7 +30,19 @@ const handleMessage = (message: Message) => {
     return;
   }
 
-  try {
+  const recursiveCatch = (cb) => {
+    try {
+      cb();
+    } catch (err) {
+      recursiveCatch(() => {
+        const msg = String(err) || 'error message cannot be empty';
+        message.channel.send(msg);
+        console.log('Err:', msg);
+      });
+    }
+  };
+
+  recursiveCatch(() => {
     const out = [];
     const vm = new VM({
       eval: false,
@@ -62,11 +74,7 @@ const handleMessage = (message: Message) => {
       message.channel.send(outStr);
       console.log('Out:', outStr);
     }
-  } catch (err) {
-    const msg = String(err) || 'error message cannot be empty';
-    message.channel.send(msg);
-    console.log('Err:', msg);
-  }
+  });
 };
 
 client.on('ready', () => {
